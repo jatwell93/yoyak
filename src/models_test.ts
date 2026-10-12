@@ -13,14 +13,16 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-import { deepStrictEqual, strictEqual } from "node:assert/strict";
+import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
 import {
   canonicalModelMonikers,
   getCanonicalModels,
   getDeprecatedAliasesByModel,
+  getModelBaseURL,
   getModelCatalog,
   getProviderModelName,
   resolveModelMoniker,
+  sameModelProvider,
   testModel,
 } from "./models.ts";
 
@@ -47,6 +49,24 @@ Deno.test("resolveModelMoniker normalizes deprecated aliases", () => {
     getProviderModelName("gpt-5.3-chat-latest"),
     "gpt-5.3-chat-latest",
   );
+});
+
+Deno.test("llm7 models resolve provider names and base URL", () => {
+  strictEqual(getProviderModelName("llm7/gpt-6-sol"), "gpt-6-sol");
+  strictEqual(getProviderModelName("llm7/gpt-oss-20b"), "gpt-oss:20b");
+  strictEqual(
+    getProviderModelName("llm7/deepseek-v4.1-flash"),
+    "DeepSeek-V4.1-Flash",
+  );
+  strictEqual(getModelBaseURL("llm7/gpt-6-sol"), "https://api.llm7.io/v1");
+  strictEqual(getModelBaseURL("gpt-4o"), undefined);
+});
+
+Deno.test("sameModelProvider groups models by provider", () => {
+  ok(sameModelProvider("llm7/gpt-6-sol", "llm7/kimi-k3"));
+  ok(sameModelProvider("gpt-5", "gpt-4o"));
+  ok(!sameModelProvider("llm7/gpt-6-sol", "gpt-5"));
+  ok(!sameModelProvider("gemma3", "llm7/gpt-oss-20b"));
 });
 
 Deno.test("model catalog exposes every canonical model exactly once", () => {

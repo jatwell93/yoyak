@@ -6,6 +6,58 @@ Version 0.7.0
 
 To be released.
 
+ -  Added `-o`/`--output` option to `yoyak summary` and `yoyak scrape`
+    commands to save the output to a Markdown file.  The output is still
+    printed to the standard output.
+
+ -  `yoyak summary` and `yoyak scrape` now accept multiple inputs in one
+    run.  Inputs can be separated by spaces, commas, or semicolons, and
+    `-o`/`--output` can be repeated once per input to save each output
+    to its own Markdown file.  If an input fails, the run continues with
+    the remaining inputs and exits non-zero at the end.
+
+ -  The output of `yoyak summary` and `yoyak scrape` now starts with a
+    `Source:` line identifying the input it was produced from, both on
+    the standard output and in saved Markdown files, so batched runs and
+    saved files remain attributable to their inputs.
+
+ -  Added `-t`/`--time` option to `yoyak summary` and `yoyak scrape`
+    commands to wait a given number of seconds between processing each
+    input, which helps stay within provider rate limits such as llm7's
+    free tier (60 requests per minute).
+
+ -  `yoyak set-model` now offers to reuse the stored API key when switching
+    between models of the same provider (e.g., between `llm7/` models),
+    so the key does not need to be re-entered.
+
+ -  Added models served through [llm7], an OpenAI-compatible API that offers
+    free credits.  They are prefixed with `llm7/` and share a single llm7
+    API key:
+
+     -  `llm7/claude-haiku-5-5`
+     -  `llm7/claude-opus-5-5`
+     -  `llm7/claude-sonnet-5`
+     -  `llm7/codestral`
+     -  `llm7/deepseek-v4-flash`
+     -  `llm7/deepseek-v4-pro`
+     -  `llm7/deepseek-v4.1-flash`
+     -  `llm7/gemini-3.8-flash-high`
+     -  `llm7/gemini-3.1-flash-lite`
+     -  `llm7/glm-5.3`
+     -  `llm7/glm-5.3-flash`
+     -  `llm7/gpt-6-sol`
+     -  `llm7/gpt-6.1-sol`
+     -  `llm7/gpt-oss-20b`
+     -  `llm7/grok-4.6`
+     -  `llm7/kimi-k3`
+     -  `llm7/llama-4-maverick`
+     -  `llm7/mistral-large-3`
+     -  `llm7/mistral-nemo`
+     -  `llm7/minimax-m3`
+     -  `llm7/nemotron-3-nano`
+
+[llm7]: https://llm7.io/
+
 
 Version 0.6.0
 -------------

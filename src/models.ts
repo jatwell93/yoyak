@@ -55,6 +55,27 @@ export const canonicalModelMonikers = [
   "gpt-5.3-chat-latest",
   "gpt-5.4",
   "gpt-5.1-chat-latest",
+  "llm7/claude-haiku-5-5",
+  "llm7/claude-opus-5-5",
+  "llm7/claude-sonnet-5",
+  "llm7/codestral",
+  "llm7/deepseek-v4-flash",
+  "llm7/deepseek-v4-pro",
+  "llm7/deepseek-v4.1-flash",
+  "llm7/gemini-3.8-flash-high",
+  "llm7/gemini-3.1-flash-lite",
+  "llm7/glm-5.3",
+  "llm7/glm-5.3-flash",
+  "llm7/gpt-6-sol",
+  "llm7/gpt-6.1-sol",
+  "llm7/gpt-oss-20b",
+  "llm7/grok-4.6",
+  "llm7/kimi-k3",
+  "llm7/llama-4-maverick",
+  "llm7/mistral-large-3",
+  "llm7/mistral-nemo",
+  "llm7/minimax-m3",
+  "llm7/nemotron-3-nano",
   "o3",
   "o4-mini",
 ] as const;
@@ -170,6 +191,7 @@ function asModelClass(modelClass: unknown): ModelClass {
 export interface CanonicalModelInfo {
   readonly name: CanonicalModelMoniker;
   readonly providerModelName: string;
+  readonly baseURL?: string;
 }
 
 export interface ModelCatalogEntry extends CanonicalModelInfo {
@@ -177,9 +199,21 @@ export interface ModelCatalogEntry extends CanonicalModelInfo {
 }
 
 /**
+ * The base URL of the llm7 OpenAI-compatible API.
+ */
+const llm7BaseURL = "https://api.llm7.io/v1";
+
+/**
  * The per-model provider configuration.
  */
-const modelConfigs = {
+const modelConfigs: Record<
+  CanonicalModelMoniker,
+  {
+    readonly modelClass: ModelClass;
+    readonly providerModelName: string;
+    readonly baseURL?: string;
+  }
+> = {
   "claude-3-5-haiku-latest": {
     modelClass: asModelClass(ChatAnthropic),
     providerModelName: "claude-3-5-haiku-latest",
@@ -288,6 +322,111 @@ const modelConfigs = {
     modelClass: asModelClass(ChatOpenAI),
     providerModelName: "gpt-5.1-chat-latest",
   },
+  "llm7/claude-haiku-5-5": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "claude-haiku-5-5",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/claude-opus-5-5": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "claude-opus-5-5",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/claude-sonnet-5": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "claude-sonnet-5",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/codestral": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "codestral-latest",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/deepseek-v4-flash": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "DeepSeek-V4-Flash-0731",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/deepseek-v4-pro": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "deepseek-v4-pro",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/deepseek-v4.1-flash": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "DeepSeek-V4.1-Flash",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/gemini-3.8-flash-high": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "gemini-3.8-flash-high",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/gemini-3.1-flash-lite": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "gemini-3.1-flash-lite",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/glm-5.3": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "glm-5.3",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/glm-5.3-flash": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "GLM-5.3-Flash",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/gpt-6-sol": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "gpt-6-sol",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/gpt-6.1-sol": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "gpt-6.1-sol",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/gpt-oss-20b": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "gpt-oss:20b",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/grok-4.6": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "grok-4.6",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/kimi-k3": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "kimi-k3",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/llama-4-maverick": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "llama-4-maverick",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/mistral-large-3": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "mistral-large-3:675b",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/mistral-nemo": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "mistral-Nemo-Instruct-2407",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/minimax-m3": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "minimax-m3",
+    baseURL: llm7BaseURL,
+  },
+  "llm7/nemotron-3-nano": {
+    modelClass: asModelClass(ChatOpenAI),
+    providerModelName: "nemotron-3-nano:30b",
+    baseURL: llm7BaseURL,
+  },
   "o3": {
     modelClass: asModelClass(ChatOpenAI),
     providerModelName: "o3",
@@ -296,10 +435,7 @@ const modelConfigs = {
     modelClass: asModelClass(ChatOpenAI),
     providerModelName: "o4-mini",
   },
-} as const satisfies Record<
-  CanonicalModelMoniker,
-  { modelClass: ModelClass; providerModelName: string }
->;
+};
 
 /**
  * Resolves deprecated aliases to their canonical model names.
@@ -332,6 +468,34 @@ export function getProviderModelName(model: CanonicalModelMoniker): string {
 }
 
 /**
+ * Gets the base URL of the OpenAI-compatible API for the canonical model, if
+ * the model is served through a custom endpoint (e.g., llm7).
+ * @param model The canonical model name.
+ * @returns The base URL, or `undefined` if the provider default is used.
+ */
+export function getModelBaseURL(
+  model: CanonicalModelMoniker,
+): string | undefined {
+  return modelConfigs[model].baseURL;
+}
+
+/**
+ * Tests if two canonical models are served by the same provider, i.e., they
+ * share the same model class and API endpoint and hence can share a single
+ * API key.
+ * @param a The first canonical model name.
+ * @param b The second canonical model name.
+ * @returns Whether the two models are served by the same provider.
+ */
+export function sameModelProvider(
+  a: CanonicalModelMoniker,
+  b: CanonicalModelMoniker,
+): boolean {
+  return getModelClass(a) === getModelClass(b) &&
+    getModelBaseURL(a) === getModelBaseURL(b);
+}
+
+/**
  * Gets the canonical model list with provider-specific identifiers.
  * @returns The canonical model list.
  */
@@ -339,6 +503,7 @@ export function getCanonicalModels(): readonly CanonicalModelInfo[] {
   return canonicalModelMonikers.map((name) => ({
     name,
     providerModelName: getProviderModelName(name),
+    baseURL: getModelBaseURL(name),
   }));
 }
 

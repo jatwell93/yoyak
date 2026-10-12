@@ -27,6 +27,7 @@ async function runCli(args: string[], stdin?: string) {
       "--allow-env",
       "--allow-sys",
       "--allow-read",
+      "--allow-write",
       CLI,
       ...args,
     ],
@@ -66,8 +67,8 @@ Deno.test("cli subcommand help remains available", async () => {
   strictEqual(summary.code, 0);
   strictEqual(scrape.code, 0);
   ok(models.stdout.includes("List the supported model names"));
-  ok(summary.stdout.includes("Summarize a text file or a web page"));
-  ok(scrape.stdout.includes("Scrape a text file or a web page"));
+  ok(summary.stdout.includes("Summarize one or more text files"));
+  ok(scrape.stdout.includes("Scrape one or more text files"));
 });
 
 Deno.test("cli models prints canonical model names only", async () => {
@@ -116,7 +117,7 @@ Deno.test("cli scrape reads from a local file", async () => {
     await Deno.writeTextFile(path, "# Sample\n\nText");
     const result = await runCli(["scrape", path]);
     strictEqual(result.code, 0);
-    strictEqual(result.stdout, "# Sample\n\nText\n");
+    strictEqual(result.stdout, `Source: ${path}\n\n# Sample\n\nText\n`);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }
@@ -125,5 +126,163 @@ Deno.test("cli scrape reads from a local file", async () => {
 Deno.test("cli scrape reads from stdin", async () => {
   const result = await runCli(["scrape", "-"], "# From stdin");
   strictEqual(result.code, 0);
-  strictEqual(result.stdout, "# From stdin\n");
+  strictEqual(result.stdout, "Source: (standard input)\n\n# From stdin\n");
+});
+
+Deno.test("cli scrape saves output to a Markdown file", async () => {
+  const tempDir = await Deno.makeTempDir();
+  const path = join(tempDir, "sample.md");
+  const output = join(tempDir, "out.md");
+
+  try {
+    await Deno.writeTextFile(path, "# Sample\n\nText");
+    const result = await runCli(["scrape", "-o", output, path]);
+    strictEqual(result.code, 0);
+    strictEqual(result.stdout, `Source: ${path}\n\n# Sample\n\nText\n`);
+    strictEqual(
+      await Deno.readTextFile(output),
+      `Source: ${path}\n\n# Sample\n\nText\n`,
+    );
+  } finally {
+    await Deno.remove(tempDir, { recursive: true });
+  }
+});
+
+Deno.test("cli scrape processes multiple space-separated inputs", async () => {
+  const tempDir = await Deno.makeTempDir();
+  const pathA = join(tempDir, "a.md");
+  const pathB = join(tempDir, "b.md");
+
+  try {
+    await Deno.writeTextFile(pathA, "# A");
+    await Deno.writeTextFile(pathB, "# B");
+    const result = await runCli(["scrape", pathA, pathB]);
+    strictEqual(result.code, 0);
+    strictEqual(
+      result.stdout,
+      `Source: ${pathA}\n\n# A\n\nSource: ${pathB}\n\n# B\n`,
+    );
+  } finally {
+    await Deno.remove(tempDir, { recursive: true });
+  }
+});
+
+Deno.test("cli scrape splits inputs on commas and semicolons", async () => {
+  const tempDir = await Deno.makeTempDir();
+  const pathA = join(tempDir, "a.md");
+  const pathB = join(tempDir, "b.md");
+  const pathC = join(tempDir, "c.md");
+
+  try {
+    await Deno.writeTextFile(pathA, "# A");
+    await Deno.writeTextFile(pathB, "# B");
+    await Deno.writeTextFile(pathC, "# C");
+    const result = await runCli(["scrape", `${pathA},${pathB};${pathC}`]);
+    strictEqual(result.code, 0);
+    strictEqual(
+      result.stdout,
+      `Source: ${pathA}\n\n# A\n\nSource: ${pathB}\n\n# B\n\n` +
+        `Source: ${pathC}\n\n# C\n`,
+    );
+  } finally {
+    await Deno.remove(tempDir, { recursive: true });
+  }
+});
+
+Deno.test("cli scrape saves each input to its own output file", async () => {
+  const tempDir = await Deno.makeTempDir();
+  const pathA = join(tempDir, "a.md");
+  const pathB = join(tempDir, "b.md");
+  const outA = join(tempDir, "out-a.md");
+  const outB = join(tempDir, "out-b.md");
+
+  try {
+    await Deno.writeTextFile(pathA, "# A");
+    await Deno.writeTextFile(pathB, "# B");
+    const result = await runCli([
+      "scrape",
+      "-o",
+      outA,
+      "-o",
+      outB,
+      pathA,
+      pathB,
+    ]);
+    strictEqual(result.code, 0);
+    strictEqual(
+      result.stdout,
+      `Source: ${pathA}\n\n# A\n\nSource: ${pathB}\n\n# B\n`,
+    );
+    strictEqual(await Deno.readTextFile(outA), `Source: ${pathA}\n\n# A\n`);
+    strictEqual(await Deno.readTextFile(outB), `Source: ${pathB}\n\n# B\n`);
+  } finally {
+    await Deno.remove(tempDir, { recursive: true });
+  }
+});
+
+Deno.test("cli scrape rejects mismatched output and input counts", async () => {
+  const tempDir = await Deno.makeTempDir();
+  const pathA = join(tempDir, "a.md");
+  const pathB = join(tempDir, "b.md");
+  const output = join(tempDir, "out.md");
+
+  try {
+    await Deno.writeTextFile(pathA, "# A");
+    await Deno.writeTextFile(pathB, "# B");
+    const result = await runCli(["scrape", "-o", output, pathA, pathB]);
+    strictEqual(result.code, 1);
+    ok(result.stderr.includes("-o/--output"));
+  } finally {
+    await Deno.remove(tempDir, { recursive: true });
+  }
+});
+
+Deno.test("cli scrape rejects mixing standard input with other inputs", async () => {
+  const tempDir = await Deno.makeTempDir();
+  const pathA = join(tempDir, "a.md");
+
+  try {
+    await Deno.writeTextFile(pathA, "# A");
+    const result = await runCli(["scrape", "-", pathA]);
+    strictEqual(result.code, 1);
+    ok(result.stderr.includes("standard input"));
+  } finally {
+    await Deno.remove(tempDir, { recursive: true });
+  }
+});
+
+Deno.test("cli scrape waits between inputs with --time", async () => {
+  const tempDir = await Deno.makeTempDir();
+  const pathA = join(tempDir, "a.md");
+  const pathB = join(tempDir, "b.md");
+
+  try {
+    await Deno.writeTextFile(pathA, "# A");
+    await Deno.writeTextFile(pathB, "# B");
+    const started = Date.now();
+    const result = await runCli(["scrape", "--time=1", pathA, pathB]);
+    const elapsed = Date.now() - started;
+    strictEqual(result.code, 0);
+    strictEqual(
+      result.stdout,
+      `Source: ${pathA}\n\n# A\n\nSource: ${pathB}\n\n# B\n`,
+    );
+    ok(elapsed >= 1000);
+  } finally {
+    await Deno.remove(tempDir, { recursive: true });
+  }
+});
+
+Deno.test("cli scrape rejects a negative --time", async () => {
+  const tempDir = await Deno.makeTempDir();
+  const pathA = join(tempDir, "a.md");
+
+  try {
+    await Deno.writeTextFile(pathA, "# A");
+    const result = await runCli(["scrape", "--time=-1", pathA]);
+    ok(result.code !== 0);
+    ok(result.stderr.includes("--time"));
+  } finally {
+    await Deno.remove(tempDir, { recursive: true });
+  }
 });
