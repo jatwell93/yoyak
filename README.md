@@ -5,6 +5,13 @@ Yoyak: An LLM-powered CLI tool for summarizing web pages
 
 This is a small CLI tool that uses LLM to summarize and translate web pages.
 
+> [!NOTE]
+> This repository is a clone of [dahlia/yoyak] by Hong Minhee with a few
+> extra features: llm7 model support, batched inputs with a configurable
+> delay, `Source:` attribution lines, and Markdown file output.  All
+> credit for the original tool goes to its author.
+
+[dahlia/yoyak]: https://github.com/dahlia/yoyak
 [Demo session thumbnail]:  https://asciinema.org/a/706701.svg
 [Demo session]: https://asciinema.org/a/706701
 
