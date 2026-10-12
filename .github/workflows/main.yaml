@@ -16,7 +16,7 @@ jobs:
     - run: deno task check
 
   publish:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.repository == 'dahlia/yoyak'
     needs: [check]
     runs-on: ubuntu-latest
     permissions:
